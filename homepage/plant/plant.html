@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>PlantCare – Realtime</title>
+
+  <meta name="color-scheme" content="light"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      color-scheme: light;
+      --bg:#f4faf6; --bg2:#f0f6f3;
+      --surface:#fff; --border:#e3eee7;
+      --text:#0f172a; --muted:#5b6575;
+      --primary:#22c55e; --primary-700:#16a34a;
+      --shadow:0 12px 32px rgba(16,24,40,.10);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    /* ✅ Toàn trang dùng Tahoma để tránh lỗi font */
+    body{
+      margin:0; color:var(--text);
+      font-family: Tahoma, Geneva, Verdana, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 380px at -10% -30%, rgba(16,185,129,.10) 0%, transparent 60%),
+        radial-gradient(980px 420px at 92% -14%, rgba(59,130,246,.10) 0%, transparent 66%),
+        linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+      line-height:1.6;
+    }
+    .container{max-width:1320px;margin:0 auto;padding:0 22px}
+    .section{padding:42px 0}
+
+    /* ===== Header ===== */
+    .site-header{
+      position:sticky;top:0;z-index:40;
+      background:#ffffffd9; backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--border);
+    }
+    .header-inner{height:80px;display:flex;align-items:center;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#166534;font-weight:900;font-size:28px}
+    .brand::before{content:"🌿"}
+    .tabs{display:flex;gap:10px}
+    .tab{
+      border:1px solid var(--border); background:#fff; color:var(--text);
+      padding:12px 18px; border-radius:999px; font-weight:700; cursor:pointer;
+      box-shadow:0 2px 8px rgba(0,0,0,.06); font-size:17px;
+    }
+    .tab:hover{background:#f4f6f9}
+    .tab.active{
+      background:linear-gradient(180deg,var(--primary),var(--primary-700));
+      border-color:transparent; color:#fff; box-shadow:0 14px 32px rgba(34,197,94,.28)
+    }
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--text);font-weight:700;font-size:16px}
+    .btn.primary{background:linear-gradient(180deg,var(--primary),var(--primary-700));color:#fff;border-color:transparent;box-shadow:0 12px 26px rgba(34,197,94,.28)}
+    .btn.back::before{content:"←";margin-right:8px;font-weight:900}
+
+    /* ===== Bố cục: hàng 1 (sensor | camera), hàng 2 (control span 2) ===== */
+    .grid-top2-bottom1{
+      display:grid;
+      grid-template-columns: 1fr 1fr;      /* 2 cột bằng nhau */
+      grid-template-areas:
+        "sensor camera"
+        "control control";
+      gap:24px;
+      align-items:stretch;                  /* ✅ hai card trên cùng cao bằng nhau */
+    }
+
+    .card{
+      display:flex;flex-direction:column;background:var(--surface);
+      border:1px solid var(--border);border-radius:var(--radius);
+      box-shadow:var(--shadow);padding:20px
+    }
+    .card h3{margin:0 0 12px;font-size:20px;font-weight:800}
+    .card-sensor{grid-area:sensor}
+    .card-camera{grid-area:camera}
+    .card-control{grid-area:control}
+
+    .badge{background:#e7f6ea;border:1px solid #cdebd6;border-radius:999px;padding:6px 10px;font-weight:800;color:#166534}
+
+    /* === Card CẢM BIẾN === */
+    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+    .summary .item{
+      min-width:0;background:linear-gradient(#fff,#fbfefd);border:1px solid var(--border);
+      border-radius:14px;padding:14px 16px;box-shadow:0 4px 12px rgba(0,0,0,.06)
+    }
+    .summary .item .label{
+      white-space:normal;overflow:visible;text-overflow:clip;font-size:15px;line-height:1.25;color:#64748b;font-weight:700
+    }
+    /* Số + đơn vị cùng dòng */
+    .value{display:flex;align-items:baseline;gap:6px}
+    .value .num{font-size:30px;font-weight:900;line-height:1}
+    .value .unit{font-size:16px;color:#64748b;font-weight:800}
+
+    #sensorChart{
+      background:#fff;border-radius:14px;height:230px;border:2px solid transparent;
+      background:linear-gradient(#fff,#fff) padding-box,
+                 linear-gradient(90deg,#60a5fa,#34d399,#f59e0b) border-box;
+      box-shadow:0 8px 22px rgba(16,24,40,.10)
+    }
+
+    /* === Card CAMERA === */
+    .img-box{padding:12px;margin-top:8px;border:1px solid var(--border);border-radius:14px;background:#fff;box-shadow:0 6px 18px rgba(16,24,40,.08);flex:1;display:flex}
+    .img-box img{width:100%;height:100%;object-fit:cover;border-radius:12px;border:1px solid #e6eef0}
+
+    /* === Card ĐIỀU KHIỂN (ép Tahoma tuyệt đối) === */
+    .card-control,
+    .card-control *{
+      font-family: Tahoma, Geneva, Verdana, Arial, sans-serif !important;
+    }
+    .switch-row{display:flex;align-items:center;gap:10px;font-size:18px;white-space:nowrap;margin-bottom:10px}
+    .switch{position:relative;width:56px;height:30px;background:#e7efe9;border:1px solid var(--border);border-radius:999px;transition:.2s}
+    .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;background:#fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:.2s}
+    input[type="checkbox"]{display:none}
+    input[type="checkbox"]:checked + .switch{background:linear-gradient(90deg,var(--primary),#34d399)}
+    input[type="checkbox"]:checked + .switch::after{transform:translateX(24px)}
+
+    .device-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .device{border-radius:14px;padding:14px;font-weight:800;background:#eff3f6;border:1px solid #e2e8f0}
+    .device.on{background:linear-gradient(135deg,var(--primary),#3ccf83);color:#fff;border-color:transparent;box-shadow:0 12px 26px rgba(34,197,94,.26)}
+    .hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .input{display:flex;align-items:center;justify-content:space-between;gap:12px;white-space:nowrap;font-size:16px}
+    .input input{flex:0 0 190px;padding:10px 12px;font-size:16px;border:1px solid #d1d5db;border-radius:12px}
+    .input input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(34,197,94,.22)}
+    .input input[disabled]{background:#f2f4f7;color:#9aa0a6}
+
+    /* ===== View DỮ LIỆU ===== */
+    .toolbar{display:flex;justify-content:flex-end;margin-bottom:10px}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px}
+    thead th{position:sticky;top:0;background:#fbfbfc;border-bottom:1px solid var(--border);padding:12px 14px;text-align:center;font-weight:800;color:#374151}
+    tbody td{border-bottom:1px solid var(--border);padding:12px 14px;text-align:center}
+    tbody tr:nth-child(odd){background:#fafafa}
+    .thumb img{width:42px;height:42px;border-radius:10px;object-fit:cover;border:1px solid var(--border)}
+    .col-left{text-align:left}
+
+    .site-footer{padding:22px 0;border-top:1px solid var(--border);background:#fff;color:#667085;text-align:center;margin-top:26px}
+
+    .view{display:none}.view.active{display:block}
+
+    /* Responsive */
+    @media (max-width: 1024px){
+      .grid-top2-bottom1{
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "sensor"
+          "camera"
+          "control";
+      }
+      #sensorChart{height:210px}
+      .summary{grid-template-columns: repeat(2,1fr)}
+    }
+    /* Nút thiết bị khi bị vô hiệu hoá trong chế độ tự động */
+    .card-control .device:disabled{
+      opacity:.6;
+      filter: grayscale(.15);
+      cursor: not-allowed;
+    }
+
+    /* Nút thiết bị khi bị vô hiệu hoá trong chế độ tự động */
+  .card-control .device:disabled{
+    opacity:.6;
+    filter: grayscale(.2);
+    cursor: not-allowed;
+    pointer-events: none; /* đề phòng handler JS */
+  }
+
+  /* Ô nhập disabled nhìn đồng bộ hơn */
+  .card-control .input input[disabled]{
+    background:#f2f4f7;
+    color:#9aa0a6;
+    cursor:not-allowed;
+  }
+
+
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#" id="brandName">PlantCare</a>
+
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-view="plant" aria-selected="true">Chi tiết cây</button>
+        <button class="tab" data-view="data" aria-selected="false">Dữ liệu</button>
+      </nav>
+
+      <!-- Nút Quay lại -->
+      <button class="btn primary back"
+        onclick="(window.history.length>1)?history.back():location.href='../main.html'">
+        Quay lại
+      </button>
+    </div>
+  </header>
+
+  <main class="container section">
+    <h2 id="pageTitle" style="margin:0 0 14px;font-size:32px;font-weight:800">Cây của tôi <span class="badge">Đang theo dõi</span></h2>
+
+    <!-- View: Chi tiết cây -->
+    <section id="view-plant" class="view active" aria-label="Chi tiết cây">
+      <div class="grid-top2-bottom1">
+        <!-- Card 1: Sensor + Chart (trái) -->
+        <article class="card card-sensor">
+          <h3>Dữ liệu cảm biến</h3>
+          <div class="summary">
+            <div class="item">
+              <div class="label">🔧 Nhiệt độ</div>
+              <div class="value"><span id="v-temp-plant" class="num">—</span><span class="unit">°C</span></div>
+            </div>
+            <div class="item">
+              <div class="label">💧 Độ ẩm</div>
+              <div class="value"><span id="v-hum-plant" class="num">—</span><span class="unit">%</span></div>
+            </div>
+            <div class="item">
+              <div class="label">🌱 Độ ẩm đất</div>
+              <div class="value"><span id="v-soil-plant" class="num">—</span><span class="unit">%</span></div>
+            </div>
+            <div class="item">
+              <div class="label">☀️ Ánh sáng</div>
+              <div class="value"><span id="v-light-plant" class="num">—</span><span class="unit">lux</span></div>
+            </div>
+          </div>
+          <canvas id="sensorChart"></canvas>
+        </article>
+
+        <!-- Card 3: Ảnh camera (phải) -->
+        <article class="card card-camera">
+          <h3>Ảnh camera</h3>
+          <div class="img-box">
+            <img id="camera-img" alt="Ảnh từ camera"/>
+          </div>
+        </article>
+
+        <!-- Card 2: Điều khiển (dưới cùng, span 2) -->
+        <article class="card card-control">
+          <h3>Điều khiển</h3>
+          <label class="switch-row">
+            Chế độ tự động
+            <input type="checkbox" id="autoMode" checked>
+            <span class="switch"></span>
+          </label>
+
+          <div class="device-row">
+            <button id="btnPump" class="device">💧 Bơm nước</button>
+            <button id="btnLight" class="device">💡 Đèn</button>
+          </div>
+          <div class="hr"></div>
+          <h4 style="margin:0 0 8px">Ngưỡng tự động</h4>
+
+          <!-- ✅ Nhãn tiếng Việt + Tahoma -->
+          <div class="form-grid">
+            <label class="input">
+              Độ ẩm đất tối thiểu (%)
+              <input type="number" id="soilMin" value="40" min="0" max="100" inputmode="numeric"
+                     aria-label="Độ ẩm đất tối thiểu (%)">
+            </label>
+            <label class="input">
+              Độ ẩm không khí tối thiểu (%)
+              <input type="number" id="humMin" value="45" min="0" max="100" inputmode="numeric"
+                     aria-label="Độ ẩm không khí tối thiểu (%)">
+            </label>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- View: Dữ liệu -->
+    <section id="view-data" class="view" aria-label="Dữ liệu">
+      <h2 id="tableTitle" style="margin:0 0 14px;font-size:28px;font-weight:800"></h2>
+      <article class="card">
+        <div class="toolbar">
+          <button id="btnExport" class="btn">Xuất file (CSV)</button>
+        </div>
+        <div class="table-wrap">
+          <table id="data-table">
+            <thead>
+              <tr>
+                <th class="col-left">Ngày – Giờ</th>
+                <th>Nhiệt độ (°C)</th>
+                <th>Độ ẩm KK (%)</th>
+                <th>Độ ẩm đất (%)</th>
+                <th>Ánh sáng (lux)</th>
+                <th>Ảnh</th>
+                <th>Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">© 2025 PlantCare — Made for plant lovers 🌿</footer>
+
+  <!-- Logic trang -->
+  <script>
+  (function () {
+    /* ===== Tên cây từ ?name=... hoặc localStorage ===== */
+    function getPlantName(){
+      const u = new URL(location.href);
+      const q = u.searchParams.get('name');
+      const ls = localStorage.getItem('plantName');
+      return q?.trim() || ls?.trim() || 'Cây của tôi';
+    }
+    const PLANT_NAME = getPlantName();
+    document.getElementById('pageTitle').innerHTML = PLANT_NAME + ' <span class="badge">Đang theo dõi</span>';
+    document.getElementById('tableTitle').textContent = PLANT_NAME;
+    document.getElementById('brandName').textContent = 'PlantCare';
+
+    /* ===== Store cho bảng/Export ===== */
+    window.store = {
+      rows: [], // {ts, temp, hum, soil, light, cam?}
+      push(ts, t, h, s, l, cam){ this.rows.push({ ts:+ts, temp:+t, hum:+h, soil:+s, light:+l, cam:cam||null }); }
+    };
+
+    /* ===== Chart setup (chỉ 10 điểm gần nhất) ===== */
+    const rt = (window.__rt ||= { labels: [], t: [], h: [], s: [], chart: null, maxPoints: 10 });
+
+    function ensureChart(){
+      if (rt.chart) return rt.chart;
+      const cvs = document.getElementById('sensorChart');
+      if (!cvs || !window.Chart) return null;
+      rt.chart = new Chart(cvs, {
+        type:'line',
+        data:{
+          labels: rt.labels,
+          datasets:[
+            { label:'Temp °C', data:rt.t, borderColor:'#f87171', tension:.35 },
+            { label:'Humidity %', data:rt.h, borderColor:'#60a5fa', tension:.35 },
+            { label:'Soil %', data:rt.s, borderColor:'#34d399', tension:.35 }
+          ]
+        },
+        options:{ responsive:true, scales:{ y:{ beginAtZero:true, max:100 } }, animation:false }
+      });
+      return rt.chart;
+    }
+
+    function appendRow(ts, t, h, s, l, cam){
+      const tb = document.querySelector('#data-table tbody'); if (!tb) return;
+      const d = new Date(ts || Date.now());
+      const img = cam ? (cam.startsWith('data:image') ? cam : `data:image/jpeg;base64,${cam}`)
+                      : 'https://images.unsplash.com/photo-1512034400317-de97d7d6c3ed?q=80&w=200&auto=format&fit=crop';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="col-left">${d.toLocaleDateString('vi-VN')}<br>${d.toLocaleTimeString('vi-VN')}</td>
+        <td>${(+t).toFixed(1)}</td>
+        <td>${Math.round(+h)}</td>
+        <td>${Math.round(+s)}</td>
+        <td>${Math.round(+l)}</td>
+        <td><div class="thumb"><img src="${img}" alt="plant"></div></td>
+        <td></td>`;
+      tb.prepend(tr);
+    }
+
+    /* ===== Đồng bộ chiều cao 2 card trên (sensor | camera) ===== */
+    function equalizeCards(){
+      const left  = document.querySelector('.card-sensor');
+      const right = document.querySelector('.card-camera');
+      if(!left || !right) return;
+      left.style.height = right.style.height = 'auto';
+      const h = Math.max(left.offsetHeight, right.offsetHeight);
+      left.style.height = right.style.height = h + 'px';
+    }
+    window.addEventListener('load', equalizeCards);
+    window.addEventListener('resize', equalizeCards);
+    window.equalizeCards = equalizeCards;
+
+    /* ===== Public API: plant.js sẽ gọi ===== */
+    window.pushRealtime = function(temp, hum, soil, light, ts, cam){
+      const t = Number(temp), h = Number(hum), s = Number(soil), l = Number(light);
+      const now = +new Date(ts || Date.now());
+
+      // Summary
+      const setText = (id,val,fmt)=>{ const el=document.getElementById(id); if(el) el.textContent = fmt(val); }
+      setText('v-temp-plant', t, v=> isFinite(v)? v.toFixed(1) : '—');
+      setText('v-hum-plant',  h, v=> isFinite(v)? Math.round(v) : '—');
+      setText('v-soil-plant', s, v=> isFinite(v)? Math.round(v) : '—');
+      setText('v-light-plant',l, v=> isFinite(v)? Math.round(v) : '—');
+
+      // Chart (giữ max 10 điểm)
+      const chart = ensureChart();
+      if (chart){
+        const label = new Date(now).toLocaleTimeString();
+        rt.labels.push(label); rt.t.push(t); rt.h.push(h); rt.s.push(s);
+        while (rt.labels.length > rt.maxPoints) { rt.labels.shift(); rt.t.shift(); rt.h.shift(); rt.s.shift(); }
+        chart.update('none');
+      }
+
+      // Bảng + store
+      appendRow(now, t, h, s, l, cam);
+      window.store.push(now, t, h, s, l, cam);
+
+      // Ảnh card
+      if (cam) {
+        const img = document.getElementById("camera-img");
+        if (img) img.src = cam.startsWith("data:image") ? cam : `data:image/jpeg;base64,${cam}`;
+      }
+
+      // Cân chiều cao 2 card trên
+      window.equalizeCards && window.equalizeCards();
+    };
+
+    /* ===== Tabs ===== */
+    const tabs = document.querySelectorAll('.tab');
+    const views = { plant:document.getElementById('view-plant'), data:document.getElementById('view-data') };
+    tabs.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        tabs.forEach(b=>b.classList.toggle('active', b===btn));
+        Object.values(views).forEach(v=>v.classList.remove('active'));
+        const v = btn.dataset.view; views[v].classList.add('active');
+      });
+    });
+
+    /* ===== Controls lock khi Auto ===== */
+const auto     = document.getElementById('autoMode');   // <input type="checkbox">
+const pumpBtn  = document.getElementById('btnPump');    // <button>
+const lightBtn = document.getElementById('btnLight');   // <button>
+const soilMin  = document.getElementById('soilMin');    // <input number>
+const humMin   = document.getElementById('humMin');     // <input number>
+
+function setAutoLock(isAuto){
+  // Khoá/mở 2 ô ngưỡng
+  soilMin.disabled = isAuto;
+  humMin.disabled  = isAuto;
+
+  // Khoá/mở 2 nút điều khiển tay
+  [pumpBtn, lightBtn].forEach(b=>{
+    b.disabled = isAuto;
+    b.setAttribute('aria-disabled', isAuto ? 'true' : 'false');
+    b.tabIndex = isAuto ? -1 : 0;
+    if (isAuto) b.classList.remove('on'); // tắt trạng thái đang bật khi chuyển về auto
+  });
+}
+
+  // Ưu tiên trạng thái đã lưu; nếu chưa có thì MẶC ĐỊNH là bật (tự động)
+  const savedAuto = localStorage.getItem('autoMode');
+  const isAutoInit = savedAuto ? savedAuto === '1' : true; // ✅ default: true
+  auto.checked = isAutoInit;
+  setAutoLock(isAutoInit);
+
+  // Lắng nghe thay đổi công tắc
+  auto.addEventListener('change', ()=>{
+    const on = auto.checked;
+    setAutoLock(on);
+    localStorage.setItem('autoMode', on ? '1' : '0');
+});
+
+// Bảo vệ nút khi disabled (phòng trường hợp sự kiện vẫn bắn)
+  [pumpBtn, lightBtn].forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if (btn.disabled) return;
+      btn.classList.toggle('on');
+    });
+  });
+
+
+    /* ===== Export CSV ===== */
+    document.getElementById('btnExport')?.addEventListener('click', ()=>{
+      const rows = [["Timestamp","Date","Time","Temp(°C)","Humidity(%)","Soil(%)","Light(lux)","Note"]];
+      window.store.rows.slice().reverse().forEach(r=>{
+        const d = new Date(r.ts);
+        rows.push([ d.toISOString(),
+                    d.toLocaleDateString('vi-VN'),
+                    d.toLocaleTimeString('vi-VN'),
+                    r.temp, r.hum, r.soil, r.light, "" ]);
+      });
+      const csv = rows.map(a=>a.join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url  = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href=url; a.download=`${PLANT_NAME.replace(/\s+/g,'_')}-data.csv`; a.click();
+      URL.revokeObjectURL(url);
+    });
+  })();
+  </script>
+
+  <!-- Kết nối Firebase (đọc dữ liệu và gọi pushRealtime) -->
+  <script type="module" src="./plant.js"></script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+/* =========================================================
+   PlantCare — Unified Green Theme (Light & Dark)
+   - Đồng bộ palette, bóng, bo góc, hover/focus
+   - Tươi sáng ở Light, dễ nhìn ở Dark (auto theo hệ thống)
+   ========================================================= */
+
+/* ---------------------- Tokens ---------------------- */
+:root{
+  /* Neutrals (Light) */
+  --bg:        #f4faf6;      /* nền ám xanh */
+  --surface:   #ffffff;      /* card trắng */
+  --surface-2: #f1f6f3;      /* card phụ */
+  --text:      #0f172a;      /* xanh than đậm */
+  --muted:     #5b6575;      /* chữ phụ */
+  --border:    #e3eee7;      /* viền ám xanh */
+
+  /* Greens */
+  --primary:   #22c55e;      /* leaf green */
+  --primary-700:#16a34a;
+  --mint:      #c7f9cc;      /* mint nhạt */
+  --mint-2:    #e9fbef;
+
+  /* Accents (status/icons) */
+  --accent-teal:#14b8a6;
+  --accent-lime:#84cc16;
+  --accent-blue:#3b82f6;
+  --accent-amber:#f59e0b;
+  --accent-red:#ef4444;
+
+  /* Pills/status backgrounds */
+  --ok-bg:#e8f5e9;    --ok-fg:#1b5e20;
+  --warn-bg:#fff4e5;  --warn-fg:#b54708;
+  --alert-bg:#fee4e2; --alert-fg:#b42318;
+
+  /* Misc */
+  --radius:16px;
+  --shadow: 0 10px 30px rgba(16,24,40,.10);
+  --shadow-lg: 0 18px 44px rgba(16,24,40,.16);
+  --ring: 0 0 0 3px rgba(34,197,94,.22);
+}
+
+/* ----- Dark mode (auto theo hệ thống) ----- */
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f172a;             /* xanh than mềm */
+    --surface:#152436;        /* card/nav */
+    --surface-2:#132335;      /* card phụ */
+    --text:#e8f3ff;
+    --muted:#a8b3c6;
+    --border:#23384e;
+
+    --primary:#34d399;        /* xanh lá sáng */
+    --primary-700:#22c55e;
+    --mint:#1d3a2a;           /* mảng xanh nhạt */
+    --mint-2:#152a1f;
+
+    --ok-bg:#163d27;    --ok-fg:#6ee7b7;
+    --warn-bg:#3a2a14;  --warn-fg:#fbbf24;
+    --alert-bg:#4a1f1f; --alert-fg:#f87171;
+
+    --shadow:0 12px 32px rgba(0,0,0,.55);
+    --shadow-lg:0 26px 60px rgba(0,0,0,.6);
+    --ring:0 0 0 3px rgba(52,211,153,.22);
+  }
+}
+
+/* ---------------------- Base ---------------------- */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family: Tahoma, Geneva, Verdana, Arial, sans-serif;
+  color:var(--text); background:var(--bg);
+  line-height:1.6; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+}
+.container{max-width:1120px;margin:0 auto;padding:0 20px}
+.section{padding:48px 0}
+
+/* ---------------------- Header ---------------------- */
+.site-header{
+  position:sticky;top:0;z-index:40;
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+@media (prefers-color-scheme: dark){
+  .site-header{background:rgba(15,24,42,.82)}
+}
+.header-inner{height:66px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:10px;align-items:center;text-decoration:none;color:inherit;font-weight:800}
+.brand svg{flex:0 0 28px}
+.nav{display:flex;gap:24px}
+.nav a{color:var(--muted);text-decoration:none;font-weight:700;letter-spacing:.2px;transition:.2s}
+.nav a:hover{color:var(--text)}
+.actions{display:flex;gap:10px}
+
+/* Buttons */
+.btn{
+  border:1px solid transparent;border-radius:999px;padding:10px 16px;
+  font-weight:800;letter-spacing:.2px;cursor:pointer;transition:.18s ease;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.btn:focus-visible{outline:none;box-shadow:var(--ring)}
+.btn.primary{
+  background:linear-gradient(180deg,var(--primary) 0%, var(--primary-700) 100%);
+  color:#ffffff;border-color:transparent; box-shadow:0 8px 20px rgba(34,197,94,.30)
+}
+.btn.primary:hover{transform:translateY(-1px);filter:brightness(.98)}
+.btn.ghost{
+  background:transparent;border:1px solid var(--border);color:var(--text)
+}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.small{padding:8px 12px;font-size:.9rem}
+
+/* ---------------------- Hero ---------------------- */
+.hero{
+  padding:64px 0 40px;
+  background:
+    radial-gradient(1200px 400px at -10% -40%, var(--mint-2) 0%, transparent 60%),
+    linear-gradient(145deg,var(--mint) 0%, #ffffff 60%);
+}
+@media (prefers-color-scheme: dark){
+  .hero{
+    background:
+      radial-gradient(1100px 420px at -10% -40%, rgba(32,64,52,.5) 0%, transparent 60%),
+      linear-gradient(145deg,#1a2e3f 0%, #0f172a 60%);
+  }
+}
+.hero-inner{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:center}
+.hero-copy h1{
+  font-size:52px;line-height:1.08;margin-bottom:12px;font-weight:900;letter-spacing:.3px;
+  text-shadow:0 4px 16px rgba(0,0,0,.06);
+}
+.hero-copy p{color:var(--muted);margin-bottom:20px;font-size:1.05rem}
+.hero-cta{display:flex;gap:12px;margin-bottom:24px}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:16px;box-shadow:var(--shadow);text-align:center
+}
+.kpi .num{font-size:24px;font-weight:900}
+.kpi .lbl{color:var(--muted);font-size:.92rem}
+@media (prefers-color-scheme: dark){
+  .kpi{background:#1a2d42;border-color:#24374c}
+}
+
+/* Hero art */
+.hero-art{
+  background:linear-gradient(135deg,#e8fbef 0%,#d9f5e0 100%);
+  border-radius:34px; min-height:260px; box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+@media (prefers-color-scheme: dark){
+  .hero-art{background:linear-gradient(135deg,#173024 0%,#102219 100%)}
+}
+.hero-plant{width:72%;max-width:360px;height:auto;opacity:.96}
+
+/* ---------------------- Cards & Grids ---------------------- */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:22px;transition:transform .2s, box-shadow .2s, border-color .2s;
+}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+@media (prefers-color-scheme: dark){
+  .card{background:var(--surface);border-color:var(--border)}
+}
+
+/* Feature icons */
+.feature .icon{
+  width:46px;height:46px;border-radius:12px;
+  display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:20px;
+  background:linear-gradient(180deg,#d9fbe5 0%, #bff6d1 100%); color:#0b4221;
+  box-shadow:inset 0 0 0 1px rgba(11,66,33,.15);
+}
+@media (prefers-color-scheme: dark){
+  .feature .icon{
+    background:linear-gradient(180deg,#173725 0%, #1b4630 100%); color:#86efac;
+    box-shadow:inset 0 0 0 1px rgba(134,239,172,.18);
+  }
+}
+.feature h3{margin:2px 0 6px;font-weight:900}
+.feature p{color:var(--muted)}
+
+/* ---------------------- Plants ---------------------- */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-head.tight{margin-bottom:8px}
+#plants h2{font-size:30px;letter-spacing:.2px}
+
+.plant-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.plant.card{
+  position:relative;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:18px; padding:18px 18px 16px; box-shadow:var(--shadow);
+}
+@media (prefers-color-scheme: dark){
+  .plant.card{background:#1a2d42;border-color:#24374c}
+}
+.plant .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding-right:74px}
+.plant .emoji{
+  font-size:22px; line-height:1;
+  background:#e7f8ee; color:#15803d; padding:8px; border-radius:10px;
+  box-shadow:inset 0 0 0 1px rgba(21,128,61,.15);
+}
+@media (prefers-color-scheme: dark){
+  .plant .emoji{background:#173725;color:#86efac;box-shadow:inset 0 0 0 1px rgba(134,239,172,.22)}
+}
+.plant h4{margin:6px 0 10px;font-weight:900}
+.plant ul{list-style:none;color:var(--muted);display:grid;gap:6px}
+.pill{
+  position:absolute; top:12px; right:12px;
+  padding:4px 10px;border-radius:999px;font-weight:800;font-size:.78rem;border:1px solid rgba(0,0,0,.06);
+  box-shadow:0 4px 10px rgba(0,0,0,.12)
+}
+.pill.ok{background:var(--ok-bg);color:var(--ok-fg)}
+.pill.warn{background:var(--warn-bg);color:var(--warn-fg)}
+.pill.alert{background:var(--alert-bg);color:var(--alert-fg)}
+
+/* Link-as-card hover */
+.card-link{display:block;text-decoration:none;color:inherit}
+.card-link:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+
+/* ---------------------- Sensors & Tasks ---------------------- */
+.sensor-list{list-style:none;display:grid;gap:12px;margin-top:6px}
+.sensor-list li{display:grid;grid-template-columns:1.3fr 2fr auto;gap:10px;align-items:center}
+.bar{
+  height:8px;border-radius:999px;overflow:hidden;border:1px solid var(--border);
+  background:linear-gradient(90deg,#e6ece8 0%, #dfe7e2 100%);
+}
+.bar>span{
+  display:block;height:100%;
+  background:linear-gradient(90deg,var(--primary) 0%, var(--accent-teal) 100%);
+}
+@media (prefers-color-scheme: dark){
+  .bar{background:linear-gradient(90deg,#1e2a38 0%, #1b2633 100%);border-color:#24374c}
+}
+
+/* ---------------------- Footer ---------------------- */
+.site-footer{
+  padding:28px 0;border-top:1px solid var(--border);
+  background:var(--surface);color:#667085
+}
+.footer-inner{display:flex;align-items:center;justify-content:space-between}
+.footer-nav{display:flex;gap:14px}
+.footer-nav a{color:#667085;text-decoration:none}
+.footer-nav a:hover{color:#344054}
+@media (prefers-color-scheme: dark){
+  .site-footer{background:#142334;color:#a8b3c6}
+  .footer-nav a{color:#a8b3c6}
+  .footer-nav a:hover{color:#e8f3ff}
+}
+
+/* ---------------------- Responsive ---------------------- */
+@media (max-width:1024px){
+  .grid-3{grid-template-columns:1fr 1fr}
+  .plant-grid{grid-template-columns:repeat(3,1fr)}
+  .hero-copy h1{font-size:44px}
+}
+@media (max-width:768px){
+  .nav{display:none}
+  .hero-inner{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .grid-2{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr}
+  .plant-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:480px){
+  .plant-grid{grid-template-columns:1fr}
+  .hero-copy h1{font-size:36px}
+}
+
+/* ================== FORCE LIGHT THEME ================== */
+/* Luôn giữ palette light kể cả khi hệ thống ở dark mode */
+:root{ color-scheme: light; }
+
+@media (prefers-color-scheme: dark){
+  /* 1) Trả mọi token về light */
+  :root{
+    --bg:#f4faf6; --surface:#ffffff; --surface-2:#f1f6f3;
+    --text:#0f172a; --muted:#5b6575; --border:#e3eee7;
+
+    --primary:#22c55e; --primary-700:#16a34a;
+    --mint:#c7f9cc; --mint-2:#e9fbef;
+
+    --ok-bg:#e8f5e9; --ok-fg:#1b5e20;
+    --warn-bg:#fff4e5; --warn-fg:#b54708;
+    --alert-bg:#fee4e2; --alert-fg:#b42318;
+
+    --shadow:0 10px 30px rgba(16,24,40,.10);
+    --shadow-lg:0 18px 44px rgba(16,24,40,.16);
+    --ring:0 0 0 3px rgba(34,197,94,.22);
+  }
+
+  /* 2) Ghi đè các component đã có style riêng cho dark */
+  .site-header{background:rgba(255,255,255,.82);border-bottom:1px solid var(--border)}
+  .hero{
+    background:
+      radial-gradient(1200px 400px at -10% -40%, var(--mint-2) 0%, transparent 60%),
+      linear-gradient(145deg,var(--mint) 0%, #ffffff 60%);
+  }
+  .hero-art{background:linear-gradient(135deg,#e8fbef 0%,#d9f5e0 100%)}
+  .kpi{background:var(--surface);border-color:var(--border)}
+  .card{background:var(--surface);border-color:var(--border)}
+  .feature .icon{
+    background:linear-gradient(180deg,#d9fbe5 0%, #bff6d1 100%); color:#0b4221;
+    box-shadow:inset 0 0 0 1px rgba(11,66,33,.15);
+  }
+  .bar{background:linear-gradient(90deg,#e6ece8 0%, #dfe7e2 100%);border-color:var(--border)}
+  .site-footer{background:var(--surface);color:#667085}
+  .footer-nav a{color:#667085}
+  .footer-nav a:hover{color:#344054}
+}
+/* ========== FIX: Giữ block "Cây của tôi" đúng màu Light ngay cả khi hệ thống Dark ========== */
+@media (prefers-color-scheme: dark){
+  /* Card cây: trả về palette Light */
+  .plant.card{
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 12px 28px rgba(16,24,40,.12) !important;
+  }
+
+  /* Icon emoji trong card: trả về màu Light tươi */
+  .plant .emoji{
+    background: #e7f8ee !important;
+    color: #15803d !important;
+    box-shadow: inset 0 0 0 1px rgba(21,128,61,.15) !important;
+  }
+
+  /* Badge trạng thái giữ tone Light để nổi bật trên card sáng */
+  .pill.ok   { background:#e8f5e9 !important; color:#1b5e20 !important; }
+  .pill.warn { background:#fff4e5 !important; color:#b54708 !important; }
+  .pill.alert{ background:#fee4e2 !important; color:#b42318 !important; }
+}
