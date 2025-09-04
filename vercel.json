@@ -8,10 +8,12 @@
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
 
-    { "src": "/service-worker\\.js", "dest": "/frontend/service-worker.js" },
-    { "src": "/(manifest\\.json)", "dest": "/public/$1" },
-    { "src": "/icon/(.*)", "dest": "/public/icon/$1" },
+    { "src": "^/service-worker\\.js$", "dest": "/frontend/service-worker.js" },
+    { "src": "^/(manifest\\.json|favicon\\.ico)$", "dest": "/public/$1" },
+    { "src": "^/icon/(.*)$", "dest": "/public/icon/$1" },
 
-    { "src": "/(.*)", "dest": "/frontend/$1" }
+    { "src": "^/$", "dest": "/frontend/index.html" },              // root → index.html
+    { "handle": "filesystem" },                                    // serve file tĩnh nếu tồn tại
+    { "src": "^(?!/api/).*$", "dest": "/frontend/$1" }             // còn lại → /frontend
   ]
 }
